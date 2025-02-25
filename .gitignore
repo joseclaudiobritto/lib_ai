@@ -1,0 +1,63 @@
+# Arquivos Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+env/
+.env
+
+# Arquivos de configuração local
+config.local.py
+.env.local
+
+# Arquivos de saída de dados
+output/
+*.csv
+*.xlsx
+*.parquet
+*.json
+
+# Docker
+.dockerignore
+
+# Logs
+logs/
+*.log
+
+# Arquivos de sistema
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Arquivos de IDEs/editores
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+.atom/
+.project
+.settings/
+
+# Arquivos específicos de segurança
+*_secrets.py
+*_credentials.py

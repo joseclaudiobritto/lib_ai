@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:14
+    container_name: biopark_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-biopark}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-biopark123}
+      POSTGRES_DB: ${DB_NAME:-biblioteca_db}
+    ports:
+      - "${DB_PORT:-5437}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - biopark-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-biopark} -d ${DB_NAME:-biblioteca_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  webscrapping:
+    build: .
+    container_name: webscrapping
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      BIBLIOTECA_URL: ${BIBLIOTECA_URL:-https://bioparkedu.jacad.com.br/academico/biblioteca/}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-biopark}
+      DB_PASSWORD: ${DB_PASSWORD:-biopark123}
+      DB_NAME: ${DB_NAME:-biblioteca_db}
+      TEMPO_ESPERA: ${TEMPO_ESPERA:-2}
+      TEMPO_ESPERA_RESUMO: ${TEMPO_ESPERA_RESUMO:-3}
+      MAX_TENTATIVAS: ${MAX_TENTATIVAS:-3}
+    networks:
+      - biopark-network
+    volumes:
+      - ./output:/app/output
+
+networks:
+  biopark-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
