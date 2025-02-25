@@ -35,6 +35,9 @@ services:
       TEMPO_ESPERA: ${TEMPO_ESPERA:-2}
       TEMPO_ESPERA_RESUMO: ${TEMPO_ESPERA_RESUMO:-3}
       MAX_TENTATIVAS: ${MAX_TENTATIVAS:-3}
+      PYTHONUNBUFFERED: 1
+      MOZ_HEADLESS: 1
+      GECKODRIVER_LOG_LEVEL: "fatal"
     networks:
       - biopark-network
     volumes:

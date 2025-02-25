@@ -21,7 +21,7 @@ Este módulo realiza a busca de dados de livros do website da biblioteca e armaz
 
 ### Para Desenvolvimento Local
 - Python 3.8+
-- Navegador Chrome instalado
+- Firefox instalado
 - Pacotes Python necessários (listados em requirements.txt)
 - PostgreSQL (opcional para desenvolvimento local)
 
@@ -29,25 +29,33 @@ Este módulo realiza a busca de dados de livros do website da biblioteca e armaz
 - Docker
 - Docker Compose
 
-## Instalação
+## Configuração e Instalação
 
 ### Desenvolvimento Local
 1. Clone ou baixe este repositório
-2. Instale os pacotes necessários:
-
 ```bash
-cd webscraping
+git clone https://github.com/seu-usuario/biopark-biblioteca-webscraping.git
+cd biopark-biblioteca-webscraping
+```
+
+2. Crie e ative um ambiente virtual (opcional, mas recomendado)
+```bash
+python -m venv venv
+source venv/bin/activate  # No Windows: venv\Scripts\activate
+```
+
+3. Instale as dependências
+```bash
 pip install -r requirements.txt
 ```
 
-3. Crie um arquivo `.env` baseado no `.env.example` com suas configurações
-
+4. Crie um arquivo `.env` baseado no `.env.example`
 ```bash
 cp .env.example .env
 # Edite o arquivo .env conforme necessário
 ```
 
-4. Certifique-se de que o Chrome está instalado em seu sistema
+5. Certifique-se de que o Firefox está instalado em seu sistema
 
 ### Implantação com Docker
 1. Clone ou baixe este repositório
@@ -128,6 +136,6 @@ O banco de dados inclui:
 
 ## Resolução de Problemas
 
-- Se encontrar problemas com o driver do navegador, certifique-se de que está usando a versão mais recente do Chrome
+- Se encontrar problemas com o driver do navegador, certifique-se de que está usando a versão mais recente do Firefox
 - Para problemas de conexão com o banco de dados, verifique se o contêiner PostgreSQL está em execução com `docker-compose ps`
 - Visualize logs com `docker-compose logs webscrapping` ou `docker-compose logs postgres`
