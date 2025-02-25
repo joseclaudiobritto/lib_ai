@@ -21,7 +21,7 @@ Este módulo realiza a busca de dados de livros do website da biblioteca e armaz
 
 ### Para Desenvolvimento Local
 - Python 3.8+
-- Navegador Chrome instalado
+- Navegador Firefox instalado
 - Pacotes Python necessários (listados em requirements.txt)
 - PostgreSQL (opcional para desenvolvimento local)
 
