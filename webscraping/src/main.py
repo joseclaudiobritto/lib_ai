@@ -3,47 +3,71 @@ import os
 import random
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
 from selenium.common.exceptions import TimeoutException, WebDriverException
+from webdriver_manager.firefox import GeckoDriverManager
 from bs4 import BeautifulSoup
 import pandas as pd
 import psycopg2
 from sqlalchemy import create_engine, text
+from dotenv import load_dotenv
 import sys
+import os
+
+load_dotenv()
+
+BIBLIOTECA_URL = os.environ.get('BIBLIOTECA_URL')
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_PORT = os.environ.get('DB_PORT', '5437')
+DB_USER = os.environ.get('DB_USER', 'biopark')
+DB_PASSWORD = os.environ.get('DB_PASSWORD', 'biopark123')
+DB_NAME = os.environ.get('DB_NAME', 'biblioteca_db')
+TEMPO_ESPERA = int(os.environ.get('TEMPO_ESPERA', '2'))
+TEMPO_ESPERA_RESUMO = int(os.environ.get('TEMPO_ESPERA_RESUMO', '3'))
+MAX_TENTATIVAS = int(os.environ.get('MAX_TENTATIVAS', '3'))
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import *
 
 def configurar_driver():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--window-size=1920,1080")
+    firefox_options = Options()
+    firefox_options.add_argument("--headless")
+    firefox_options.add_argument("--no-sandbox")
+    firefox_options.add_argument("--disable-dev-shm-usage")
+    firefox_options.add_argument("--width=1920")
+    firefox_options.add_argument("--height=1080")
     
-    driver = webdriver.Chrome(options=chrome_options)
+    service = Service(
+        executable_path=GeckoDriverManager().install(),
+        service_log_path=os.path.devnull
+    )
+    driver = webdriver.Firefox(service=service, options=firefox_options)
     return driver
 
 def obter_conexao_db():
     try:
-        conn = psycopg2.connect(
+        conexao = psycopg2.connect(
             host=DB_HOST,
             port=DB_PORT,
+            database=DB_NAME,
             user=DB_USER,
-            password=DB_PASSWORD,
-            dbname=DB_NAME
+            password=DB_PASSWORD
         )
-        return conn
-    except Exception as e:
-        print(f"Erro de conexão com o banco de dados: {e}")
+        return conexao
+    except psycopg2.Error as e:
+        print(f"Erro ao conectar ao banco de dados: {e}")
         return None
 
-def criar_engine_sqlalchemy():
-    conn_string = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    return create_engine(conn_string)
+def criar_engine_sql():
+    try:
+        conn_string = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        engine = create_engine(conn_string)
+        return engine
+    except Exception as e:
+        print(f"Erro ao criar engine SQL: {e}")
+        return None
 
-def obter_livros():
+def buscar_livros():
     driver = configurar_driver()
     try:
         print("Acessando o site da biblioteca...")
@@ -55,14 +79,14 @@ def obter_livros():
         botao_busca.click()
         time.sleep(TEMPO_ESPERA)
         
-        todos_livros = []
+        livros_pagina = []
         pagina = 1
         sem_livros = False
         
         while not sem_livros:
             print(f"Obtendo página {pagina}...")
             
-            url_pagina = f"{BIBLIOTECA_URL.rstrip('/')}/../acervo/{pagina}"
+            url_pagina = f"{BIBLIOTECA_URL.rstrip('/')}/acervo/{pagina}"
             driver.get(url_pagina)
             time.sleep(TEMPO_ESPERA)
             
@@ -88,8 +112,10 @@ def obter_livros():
                     titulo = link_titulo.text.strip() if link_titulo else "N/A"
                     
                     url_livro = link_titulo.get("href") if link_titulo else "N/A"
+                    print(url_livro)
                     if url_livro and not url_livro.startswith("http"):
-                        base_url = "/".join(BIBLIOTECA_URL.split("/")[:-2])
+                        base_url = "/".join(BIBLIOTECA_URL.split("/")[:-3])
+                        print(base_url)
                         url_livro = f"{base_url}{url_livro}"
                     
                     elemento_subtitulo = elemento_titulo.find("small")
@@ -128,15 +154,14 @@ def obter_livros():
                         "resumo": resumo
                     }
                     
-                    todos_livros.append(dados_livro)
+                    livros_pagina.append(dados_livro)
                 except Exception as e:
                     print(f"Erro ao extrair informações do livro: {e}")
             
             print(f"Obtido {len(elementos_livro)} livros da página {pagina}")
+            salvar_no_banco(livros_pagina)
             pagina += 1
-                
-        return todos_livros
-    
+            livros_pagina = []
     finally:
         driver.quit()
 
@@ -222,7 +247,7 @@ def salvar_no_banco(livros):
     try:
         df = pd.DataFrame(livros)
         
-        engine = criar_engine_sqlalchemy()
+        engine = criar_engine_sql()
         
         df.to_sql('livros', engine, if_exists='append', index=False)
         
@@ -238,13 +263,10 @@ def salvar_no_banco(livros):
 
 if __name__ == "__main__":
     print("Obtendo dados web da biblioteca...")
+    print(f"URL da biblioteca configurada: {BIBLIOTECA_URL}")
     
     os.makedirs("output", exist_ok=True)
+
+    buscar_livros()
     
-    livros = obter_livros()
-    
-    if livros:
-        print(f"Obtidos com sucesso {len(livros)} livros")
-        salvar_no_banco(livros)
-    else:
-        print("Nenhum livro foi obtido.")
+    print(f"Obtidos com sucesso {len(livros)} livros")
