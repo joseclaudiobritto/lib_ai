@@ -46,7 +46,7 @@ Este módulo (a ser implementado) será responsável por:
 - Python 3.8+
 - Docker e Docker Compose (para implantação)
 - PostgreSQL (para armazenamento de dados)
-- Chrome (para o módulo de webscraping)
+- Firefox (para o módulo de webscraping)
 
 ## Início Rápido
 
