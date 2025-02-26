@@ -269,4 +269,4 @@ if __name__ == "__main__":
 
     buscar_livros()
     
-    print(f"Obtidos com sucesso {len(livros)} livros")
+    print(f"Livros obtidos com sucesso")
