@@ -73,7 +73,3 @@ Este projeto está em desenvolvimento ativo. Para contribuir:
 1. Crie um fork do repositório
 2. Implemente suas alterações
 3. Envie um pull request
-
-## Licença
-
-[MIT](LICENSE)
